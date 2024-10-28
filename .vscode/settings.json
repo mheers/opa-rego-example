@@ -1,0 +1,8 @@
+{
+    "opa.roots": [
+        "${workspaceFolder}/bundle"
+    ],
+    "opa.strictMode": true,
+    "opa.checkOnSave": true,
+    "editor.formatOnSave": true
+}

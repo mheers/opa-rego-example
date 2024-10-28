@@ -1,0 +1,21 @@
+{
+    "marcel": {
+        "groups": [
+            "admin",
+            "user"
+        ],
+        "maxAmount": 23
+    },
+    "user": {
+        "groups": [
+            "user"
+        ],
+        "maxAmount": 15
+    },
+    "admin": {
+        "groups": [
+            "admin"
+        ],
+        "maxAmount": 1000
+    }
+}
