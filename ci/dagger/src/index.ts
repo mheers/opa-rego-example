@@ -23,6 +23,24 @@ const username = "mheers"
 
 @object()
 export class Ci {
+  @func()
+  async lintRegos(directoryArg: Directory): Promise<string> {
+    return dag.container().from(baseImage)
+      .withMountedDirectory("/bundle", directoryArg)
+      .withWorkdir("/bundle")
+      .withExec(["regal", "lint", "/bundle"]) // lint
+      .stdout()
+  }
+
+  async checkRegos(directoryArg: Directory): Promise<string> {
+    return dag.container().from(baseImage)
+      .withMountedDirectory("/bundle", directoryArg)
+      .withWorkdir("/bundle")
+      .withExec(["opa", "check", "--strict", "/bundle"]) // check // TODO: add schema to check and run bench
+      .stdout()
+  }
+
+  @func()
   async testRegos(directoryArg: Directory): Promise<string> {
     return dag.container().from(baseImage)
       .withMountedDirectory("/bundle", directoryArg)
@@ -41,6 +59,8 @@ export class Ci {
 
   @func()
   async testBuildAndPushBundle(directoryArg: Directory, registryToken: Secret): Promise<string> {
+    await this.checkRegos(directoryArg)
+    await this.lintRegos(directoryArg)
     await this.testRegos(directoryArg)
     return this.buildBundle(directoryArg)
       .withSecretVariable("REGISTRY_ACCESS_TOKEN", registryToken)
