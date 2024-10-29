@@ -17,7 +17,7 @@ import { dag, Directory, object, func, Container, Secret } from "@dagger.io/dagg
 
 const baseImage = "mheers/opa-tools:latest"
 const registry = "registry-1.docker.io"
-const repository = "mheers/opa-policy"
+const repository = "mheers/opa-rego-example"
 const tag = "1.0.0"
 const username = "mheers"
 
