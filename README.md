@@ -31,6 +31,8 @@ This repository contains a GitHub Actions pipeline that runs the rego tests, bui
 
 The pipeline leverages [dagger](https://dagger.io/) that allows the development of CI/CD pipelines independently of the CI/CD platform and can be run locally but also on GitHub Actions, GitLab CI, Jenkins, etc.
 
+It also uses the [opa-tools](https://github.com/mheers/opa-tools) Docker image that contains all the necessary tools to run the pipeline.
+
 Before running the pipeline, you need to set the following secrets in your GitHub repository:
 
 - `REGISTRY_ACCESS_TOKEN`: The access token to authenticate with the registry.
@@ -38,7 +40,6 @@ Before running the pipeline, you need to set the following secrets in your GitHu
 Also, you need to adjust the following constants in the `ci/dagger/src/index.ts` file:
 
 ```ts
-const baseImage = "mheers/opa-tools:latest"
 const registry = "registry-1.docker.io"
 const repository = "mheers/opa-policy"
 const tag = "1.0.0"
