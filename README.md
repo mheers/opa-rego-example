@@ -68,3 +68,10 @@ dagger call test-regos --directory-arg ../bundle
 export $(cat .env | xargs)
 dagger call test-build-and-push-bundle --directory-arg ../bundle --registry-token=env:REGISTRY_ACCESS_TOKEN
 ```
+
+## Dev
+
+Install:
+
+- [opa](https://www.openpolicyagent.org/docs/latest/#running-opa)
+- [regal](https://docs.styra.com/regal)

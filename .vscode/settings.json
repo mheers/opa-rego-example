@@ -4,5 +4,10 @@
     ],
     "opa.strictMode": true,
     "opa.checkOnSave": true,
-    "editor.formatOnSave": true
+    "opa.bundleMode": true,
+    "editor.formatOnSave": true,
+    "opa.dependency_paths.regal": "regal",
+    "[rego]": {
+        "editor.defaultFormatter": "tsandall.opa"
+    },
 }
