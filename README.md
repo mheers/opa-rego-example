@@ -65,5 +65,6 @@ cd ci/
 dagger call test-regos --directory-arg ../bundle
 
 # run build and push pipeline
+export $(cat .env | xargs)
 dagger call test-build-and-push-bundle --directory-arg ../bundle --registry-token=env:REGISTRY_ACCESS_TOKEN
 ```
