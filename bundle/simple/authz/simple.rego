@@ -2,6 +2,9 @@ package simple.authz
 
 import rego.v1
 
+# METADATA
+# description: Allow only admins, or reading public resources
+# entrypoint: true
 default allow := false
 
 ## useful for debugging
