@@ -1,0 +1,21 @@
+services:
+  oci-registry:
+    url: https://registry-1.docker.io
+    type: oci
+    # credentials:
+    #   bearer:
+    #     scheme: "Bearer"
+    #     token: "<mytoken>"
+
+bundles:
+  authz:
+    docker: oci-registry
+    resource: registry-1.docker.io/mheers/opa-rego-example:1.0.0
+    polling:
+      min_delay_seconds: 30
+      max_delay_seconds: 120
+
+# persistence_directory: /var/opa
+
+decision_logs:
+  console: true
