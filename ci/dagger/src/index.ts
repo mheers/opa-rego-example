@@ -26,32 +26,26 @@ const userDataURL = "https://github.com/mheers/opa-rego-example/releases/downloa
 export class Ci {
   @func()
   async lintRegos(directoryArg: Directory): Promise<string> {
-    return dag.container().from(baseImage)
-      .withMountedDirectory("/bundle", directoryArg)
-      .withWorkdir("/bundle")
+    return this.baseContainer(directoryArg)
       .withExec(["regal", "lint", "/bundle"]) // lint
       .stdout()
   }
 
   async checkRegos(directoryArg: Directory): Promise<string> {
-    return dag.container().from(baseImage)
-      .withMountedDirectory("/bundle", directoryArg)
-      .withWorkdir("/bundle")
+    return this.baseContainer(directoryArg)
       .withExec(["opa", "check", "--strict", "/bundle"]) // check // TODO: add schema to check and run bench
       .stdout()
   }
 
   @func()
   async testRegos(directoryArg: Directory): Promise<string> {
-    return dag.container().from(baseImage)
-      .withMountedDirectory("/bundle", directoryArg)
-      .withWorkdir("/bundle")
+    return this.baseContainer(directoryArg)
       .withExec(["opa", "test", "-v", "--coverage", "--format=json", "/bundle"]) // test
       .stdout()
   }
 
   @func()
-  buildBundle(directoryArg: Directory): Container {
+  baseContainer(directoryArg: Directory): Container {
     return dag.container().from(baseImage)
       .withMountedDirectory("/bundle", directoryArg)
       .withWorkdir("/bundle")
@@ -59,7 +53,11 @@ export class Ci {
       // download user data from the api
       .withExec(["mkdir", "-p", "/bundle/users/"])
       .withExec(["wget", "-O", "/bundle/users/data.json", userDataURL])
+  }
 
+  @func()
+  buildBundle(directoryArg: Directory): Container {
+    return this.baseContainer(directoryArg)
       // build the bundle
       .withExec(["policy", "build", "/bundle", "--ignore", "*_test.rego", "-t", `${registry}/${repository}:${tag}`]) // build
   }
