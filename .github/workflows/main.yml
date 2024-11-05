@@ -20,8 +20,14 @@ jobs:
       - name: Install Dagger CLI
         run: cd /usr/local && { curl -L https://dl.dagger.io/dagger/install.sh | sh; cd -; }
 
-      - name: Release and deploy with Dagger
+      - name: Build OPA Bundle
         working-directory: ci
-        run: dagger call test-build-and-push-bundle --directory-arg ../bundle --registry-token=env:REGISTRY_ACCESS_TOKEN
+        run: dagger call test-build-and-push-bundle --bundle-directory ../bundle --registry-token=env:REGISTRY_ACCESS_TOKEN
+        env:
+          REGISTRY_ACCESS_TOKEN: ${{ secrets.REGISTRY_ACCESS_TOKEN }}
+
+      - name: Build OPA Demo Image
+        working-directory: ci
+        run: dagger call test-build-and-push-bundle --bundle-directory ../bundle --config-demo-file ../config-demo.yaml --registry-token=env:REGISTRY_ACCESS_TOKEN
         env:
           REGISTRY_ACCESS_TOKEN: ${{ secrets.REGISTRY_ACCESS_TOKEN }}

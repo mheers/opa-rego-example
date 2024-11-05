@@ -62,11 +62,15 @@ You can then run the pipeline locally using the following command:
 cd ci/
 
 # run test pipeline
-dagger call test-regos --directory-arg ../bundle
+dagger call test-regos --bundle-directory ../bundle
 
 # run build and push pipeline
 export $(cat .env | xargs)
-dagger call test-build-and-push-bundle --directory-arg ../bundle --registry-token=env:REGISTRY_ACCESS_TOKEN
+dagger call test-build-and-push-bundle --bundle-directory ../bundle --registry-token=env:REGISTRY_ACCESS_TOKEN
+
+# run build and push an OPA demo image with batteries included
+export $(cat .env | xargs)
+dagger call build-and-push-opa-demo --bundle-directory ../bundle --config-demo-file ../config-demo.yaml --registry-token=env:REGISTRY_ACCESS_TOKEN
 ```
 
 ## Dev

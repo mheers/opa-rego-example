@@ -13,7 +13,7 @@
  * rest is a long description with more detail on the module's purpose or usage,
  * if appropriate. All modules should have a short description.
  */
-import { dag, Directory, object, func, Container, Secret } from "@dagger.io/dagger"
+import { dag, Directory, File, object, func, Container, Secret } from "@dagger.io/dagger"
 
 const baseImage = "mheers/opa-tools:latest"
 const registry = "registry-1.docker.io"
@@ -22,32 +22,35 @@ const tag = "1.0.0"
 const username = "mheers"
 const userDataURL = "https://github.com/mheers/opa-rego-example/releases/download/v0.0.1/data.json"
 
+const opaImageSrc = "openpolicyagent/opa:0.70.0-static"
+const opaImageDst = "docker.io/mheers/opa-demo:latest"
+
 @object()
 export class Ci {
   @func()
-  async lintRegos(directoryArg: Directory): Promise<string> {
-    return this.baseContainer(directoryArg)
+  async lintRegos(bundleDirectory: Directory): Promise<string> {
+    return this.baseContainer(bundleDirectory)
       .withExec(["regal", "lint", "/bundle"]) // lint
       .stdout()
   }
 
-  async checkRegos(directoryArg: Directory): Promise<string> {
-    return this.baseContainer(directoryArg)
+  async checkRegos(bundleDirectory: Directory): Promise<string> {
+    return this.baseContainer(bundleDirectory)
       .withExec(["opa", "check", "--strict", "/bundle"]) // check // TODO: add schema to check and run bench
       .stdout()
   }
 
   @func()
-  async testRegos(directoryArg: Directory): Promise<string> {
-    return this.baseContainer(directoryArg)
+  async testRegos(bundleDirectory: Directory): Promise<string> {
+    return this.baseContainer(bundleDirectory)
       .withExec(["opa", "test", "-v", "--coverage", "--format=json", "/bundle"]) // test
       .stdout()
   }
 
   @func()
-  baseContainer(directoryArg: Directory): Container {
+  baseContainer(bundleDirectory: Directory): Container {
     return dag.container().from(baseImage)
-      .withMountedDirectory("/bundle", directoryArg)
+      .withMountedDirectory("/bundle", bundleDirectory)
       .withWorkdir("/bundle")
 
       // download user data from the api
@@ -56,21 +59,40 @@ export class Ci {
   }
 
   @func()
-  buildBundle(directoryArg: Directory): Container {
-    return this.baseContainer(directoryArg)
+  buildBundle(bundleDirectory: Directory): Container {
+    return this.baseContainer(bundleDirectory)
       // build the bundle
       .withExec(["policy", "build", "/bundle", "--ignore", "*_test.rego", "-t", `${registry}/${repository}:${tag}`]) // build
+      .withExec(["policy", "save", `${registry}/${repository}:${tag}`]) // save/export
   }
 
   @func()
-  async testBuildAndPushBundle(directoryArg: Directory, registryToken: Secret): Promise<string> {
-    await this.checkRegos(directoryArg)
-    await this.lintRegos(directoryArg)
-    await this.testRegos(directoryArg)
-    return this.buildBundle(directoryArg)
+  async testBuildAndPushBundle(bundleDirectory: Directory, registryToken: Secret): Promise<string> {
+    await this.checkRegos(bundleDirectory)
+    await this.lintRegos(bundleDirectory)
+    await this.testRegos(bundleDirectory)
+    return this.buildBundle(bundleDirectory)
       .withSecretVariable("REGISTRY_ACCESS_TOKEN", registryToken)
       .withExec(["sh", "-c", `policy login -s ${registry} -u ${username} -p $REGISTRY_ACCESS_TOKEN`]) // login
       .withExec(["policy", "push", `${registry}/${repository}:${tag}`]) // push
       .stdout()
+  }
+
+  @func()
+  async buildAndPushOpaDemo(bundleDirectory: Directory, configDemoFile: File, registryToken: Secret): Promise<string> {
+    const bundleContainer = this.buildBundle(bundleDirectory)
+    const opaContainer = dag.container().from(opaImageSrc)
+
+    const resultContainer = bundleContainer
+      .withFile("/opa", opaContainer.file("/opa"))
+      .withFile("/config.yaml", configDemoFile)
+      .withEntrypoint(["/opa", "run", "--server", "--log-level", "debug", "--addr", ":8181", "/bundle", "--config-file", "/config.yaml"])
+    // .withFile("/bundle.tar.gz", bundleContainer.file("/bundle/bundle.tar.gz"))
+
+    const imageDigest = resultContainer
+      .withRegistryAuth(opaImageDst, username, registryToken)
+      .publish(opaImageDst)
+
+    return imageDigest
   }
 }
