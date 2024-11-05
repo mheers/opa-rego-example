@@ -20,6 +20,7 @@ const registry = "registry-1.docker.io"
 const repository = "mheers/opa-rego-example"
 const tag = "1.0.0"
 const username = "mheers"
+const userDataURL = "https://github.com/mheers/opa-rego-example/releases/download/v0.0.1/data.json"
 
 @object()
 export class Ci {
@@ -54,6 +55,12 @@ export class Ci {
     return dag.container().from(baseImage)
       .withMountedDirectory("/bundle", directoryArg)
       .withWorkdir("/bundle")
+
+      // download user data from the api
+      .withExec(["mkdir", "-p", "/bundle/users/"])
+      .withExec(["wget", "-O", "/bundle/users/data.json", userDataURL])
+
+      // build the bundle
       .withExec(["policy", "build", "/bundle", "--ignore", "*_test.rego", "-t", `${registry}/${repository}:${tag}`]) // build
   }
 
