@@ -8,5 +8,5 @@ services:
       - "8181:8181"
     volumes:
       - ./config.yaml:/etc/opa/config.yaml
-    command: run --disable-telemetry --server --log-level debug --log-format=json-pretty --authorization=basic --addr :8181 --set default_decision=policies --ignore "*_test.rego" --config-file /etc/opa/config.yaml
+    command: run --disable-telemetry --server --log-level debug --log-format=json-pretty --addr :8181 --set default_decision=policies --ignore "*_test.rego" --config-file /etc/opa/config.yaml
     # opa run --disable-telemetry --server --log-level debug --log-format=json-pretty --addr :8181 --set default_decision=policies --config-file ./config.yaml

@@ -1,0 +1,8 @@
+version: '3.1'
+services:
+
+  # opa using a batteries included demo bundle:
+  opa:
+    image: mheers/opa-demo:latest
+    ports:
+      - "8181:8181"

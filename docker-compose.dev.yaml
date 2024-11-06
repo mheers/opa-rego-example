@@ -1,0 +1,13 @@
+version: '3.1'
+services:
+
+  # opa using running local bundle:
+  opa:
+    image: openpolicyagent/opa:0.69.0
+    ports:
+      - "8181:8181"
+    volumes:
+      - ./config-demo.yaml:/etc/opa/config.yaml
+      - ./bundle:/bundle
+    command: run --disable-telemetry --server --log-level debug --log-format=json-pretty --addr :8181 --set default_decision=policies --ignore "*_test.rego" --config-file /etc/opa/config.yaml --bundle /bundle
+    # opa run --disable-telemetry --server --log-level debug --log-format=json-pretty --addr :8181 --set default_decision=policies --config-file ./config.yaml

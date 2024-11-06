@@ -53,7 +53,7 @@ export class Ci {
       .withMountedDirectory("/bundle", bundleDirectory)
       .withWorkdir("/bundle")
 
-      // download user data from the api
+      // download/replace user data from the api
       .withExec(["mkdir", "-p", "/bundle/users/"])
       .withExec(["wget", "-O", "/bundle/users/data.json", userDataURL])
   }
