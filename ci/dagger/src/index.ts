@@ -63,7 +63,6 @@ export class Ci {
     return this.baseContainer(bundleDirectory)
       // build the bundle
       .withExec(["policy", "build", "/bundle", "--ignore", "*_test.rego", "-t", `${registry}/${repository}:${tag}`]) // build
-      .withExec(["policy", "save", `${registry}/${repository}:${tag}`]) // save/export
   }
 
   @func()
@@ -83,13 +82,13 @@ export class Ci {
     const bundleContainer = this.buildBundle(bundleDirectory)
     const opaContainer = dag.container().from(opaImageSrc)
 
-    const resultContainer = bundleContainer
+    const imageDigest = bundleContainer
       .withFile("/opa", opaContainer.file("/opa"))
       .withFile("/config.yaml", configDemoFile)
-      .withEntrypoint(["/opa", "run", "--server", "--log-level", "debug", "--addr", ":8181", "/bundle", "--config-file", "/config.yaml"])
-    // .withFile("/bundle.tar.gz", bundleContainer.file("/bundle/bundle.tar.gz"))
-
-    const imageDigest = resultContainer
+      .withExec(["mkdir", "-p", "/data"])
+      .withWorkdir("/data")
+      .withExec(["policy", "save", `${registry}/${repository}:${tag}`]) // save/export
+      .withEntrypoint(["/opa", "run", "--server", "--log-level", "debug", "--addr", ":8181", "/data", "--config-file", "/config.yaml"])
       .withRegistryAuth(opaImageDst, username, registryToken)
       .publish(opaImageDst)
 
