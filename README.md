@@ -66,11 +66,11 @@ dagger call test-regos --bundle-directory ../bundle
 
 # run build and push pipeline
 export $(cat .env | xargs)
-dagger call test-build-and-push-bundle --bundle-directory ../bundle --registry-token=env:REGISTRY_ACCESS_TOKEN
+dagger call test-build-and-push-bundle --bundle-directory ../bundle --git-directory ../.git --registry-token=env:REGISTRY_ACCESS_TOKEN
 
 # run build and push an OPA demo image with batteries included
 export $(cat .env | xargs)
-dagger call build-and-push-opa-demo --bundle-directory ../bundle --config-demo-file ../config-demo.yaml --registry-token=env:REGISTRY_ACCESS_TOKEN
+dagger call build-and-push-opa-demo --bundle-directory ../bundle --git-directory ../.git --config-demo-file ../config-demo.yaml --registry-token=env:REGISTRY_ACCESS_TOKEN
 ```
 
 ## Dev

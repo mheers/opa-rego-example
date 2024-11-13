@@ -22,12 +22,12 @@ jobs:
 
       - name: Build OPA Bundle
         working-directory: ci
-        run: dagger call test-build-and-push-bundle --bundle-directory ../bundle --registry-token=env:REGISTRY_ACCESS_TOKEN
+        run: dagger call test-build-and-push-bundle --bundle-directory ../bundle --git-directory ../.git --registry-token=env:REGISTRY_ACCESS_TOKEN
         env:
           REGISTRY_ACCESS_TOKEN: ${{ secrets.REGISTRY_ACCESS_TOKEN }}
 
       - name: Build OPA Demo Image
         working-directory: ci
-        run: dagger call build-and-push-opa-demo --bundle-directory ../bundle --config-demo-file ../config-demo.yaml --registry-token=env:REGISTRY_ACCESS_TOKEN
+        run: dagger call build-and-push-opa-demo --bundle-directory ../bundle --git-directory ../.git --config-demo-file ../config-demo.yaml --registry-token=env:REGISTRY_ACCESS_TOKEN
         env:
           REGISTRY_ACCESS_TOKEN: ${{ secrets.REGISTRY_ACCESS_TOKEN }}

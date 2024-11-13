@@ -59,18 +59,21 @@ export class Ci {
   }
 
   @func()
-  buildBundle(bundleDirectory: Directory): Container {
+  buildBundle(bundleDirectory: Directory, gitDirectory: Directory): Container {
     return this.baseContainer(bundleDirectory)
+      .withMountedDirectory("/git/.git", gitDirectory)
+      .withWorkdir("/git")
+
       // build the bundle
-      .withExec(["policy", "build", "/bundle", "--ignore", "*_test.rego", "-t", `${registry}/${repository}:${tag}`]) // build
+      .withExec(["sh", "-c", `policy build /bundle --revision $(git rev-parse HEAD) --ignore *_test.rego -t ${registry}/${repository}:${tag}`])
   }
 
   @func()
-  async testBuildAndPushBundle(bundleDirectory: Directory, registryToken: Secret): Promise<string> {
+  async testBuildAndPushBundle(bundleDirectory: Directory, gitDirectory: Directory, registryToken: Secret): Promise<string> {
     await this.checkRegos(bundleDirectory)
     await this.lintRegos(bundleDirectory)
     await this.testRegos(bundleDirectory)
-    return this.buildBundle(bundleDirectory)
+    return this.buildBundle(bundleDirectory, gitDirectory)
       .withSecretVariable("REGISTRY_ACCESS_TOKEN", registryToken)
       .withExec(["sh", "-c", `policy login -s ${registry} -u ${username} -p $REGISTRY_ACCESS_TOKEN`]) // login
       .withExec(["policy", "push", `${registry}/${repository}:${tag}`]) // push
@@ -78,8 +81,8 @@ export class Ci {
   }
 
   @func()
-  async buildAndPushOpaDemo(bundleDirectory: Directory, configDemoFile: File, registryToken: Secret): Promise<string> {
-    const bundleContainer = this.buildBundle(bundleDirectory)
+  async buildAndPushOpaDemo(bundleDirectory: Directory, gitDirectory: Directory, configDemoFile: File, registryToken: Secret): Promise<string> {
+    const bundleContainer = this.buildBundle(bundleDirectory, gitDirectory)
     const opaContainer = dag.container().from(opaImageSrc)
 
     const imageDigest = bundleContainer
