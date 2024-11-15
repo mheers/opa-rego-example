@@ -1,0 +1,16 @@
+suite: simple
+description: This is an example raygun suite
+opa:
+  # path: /usr/local/bin/opa
+  bundle-path: bundle.tar.gz
+tests:
+  - name: ex-test1
+    description: this is the description for ex-test1
+    decision-path:  /v1/data/simple/authz
+    expects:
+      type: substring
+      target: '"allow":true'
+    input:
+      type: inline
+      value: >
+       { "input": { "username": "marcel" } }

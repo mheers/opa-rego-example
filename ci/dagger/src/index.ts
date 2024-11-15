@@ -69,11 +69,27 @@ export class Ci {
   }
 
   @func()
-  async testBuildAndPushBundle(bundleDirectory: Directory, gitDirectory: Directory, registryToken: Secret): Promise<string> {
+  async testBlackBox(bundleContainer: Container, testDir: Directory): Promise<string> {
+    return bundleContainer
+      .withMountedDirectory("/tests", testDir)
+      .withExec(["mkdir", "-p", "/data"])
+      .withWorkdir("/data")
+      .withExec(["policy", "save", `${registry}/${repository}:${tag}`]) // save/export
+      .withExec(["sh", "-c", "cp -r /tests/* /data/"])
+      .withExec(["raygun", "execute", "--verbose", "--opa-log", "/tmp/opa.log", "."]) // blackbox test
+      .stdout()
+  }
+
+  @func()
+  async testBuildAndPushBundle(bundleDirectory: Directory, testDirectory: Directory, gitDirectory: Directory, registryToken: Secret): Promise<string> {
     await this.checkRegos(bundleDirectory)
     await this.lintRegos(bundleDirectory)
     await this.testRegos(bundleDirectory)
-    return this.buildBundle(bundleDirectory, gitDirectory)
+    const bundle = this.buildBundle(bundleDirectory, gitDirectory)
+
+    await this.testBlackBox(bundle, testDirectory)
+
+    return bundle
       .withSecretVariable("REGISTRY_ACCESS_TOKEN", registryToken)
       .withExec(["sh", "-c", `policy login -s ${registry} -u ${username} -p $REGISTRY_ACCESS_TOKEN`]) // login
       .withExec(["policy", "push", `${registry}/${repository}:${tag}`]) // push
