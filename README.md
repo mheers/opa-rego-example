@@ -83,6 +83,8 @@ dagger call build-and-push-opa-demo --bundle-directory ../bundle --git-directory
 dagger call get-documentation --bundle-directory ../bundle --git-directory ../.git --docs-directory ../docs export --path ./public
 ```
 
+Publish the documentation to GitHub Pages: https://mheers.github.io/opa-rego-example/
+
 ## Dev
 
 Install:
@@ -101,8 +103,8 @@ curl -X GET localhost:8181/v1/metrics
 This should return a list of metrics in Prometheus format.
 
 # TODO
-- [ ] policy documentation using https://github.com/zenitysec/sphinx-rego
+- [x] policy documentation using https://github.com/zenitysec/sphinx-rego
   - [x] pipeline
-  - [ ] publish to github pages
+  - [x] publish to github pages
 - [ ] signing using `policy build --signing-key=STRING`
 - [ ] encrypting
