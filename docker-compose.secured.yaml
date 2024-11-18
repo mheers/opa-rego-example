@@ -14,7 +14,7 @@ services:
       - --disable-telemetry
       - --server
       - --log-level
-      - debug
+      - error
       - --log-format
       - json-pretty
       - --authorization
@@ -27,4 +27,4 @@ services:
       - /etc/opa/config.yaml
       - --bundle
       - /bundle
-    # opa run --disable-telemetry --server --log-level debug --log-format=json-pretty --authorization=basic --addr :8181 --set default_decision=policies --config-file ./config.yaml
+    # opa run --disable-telemetry --server --log-level error --log-format=json-pretty --authorization=basic --addr :8181 --set default_decision=policies --config-file ./config.yaml
