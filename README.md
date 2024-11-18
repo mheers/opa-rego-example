@@ -77,9 +77,32 @@ export $(cat .env | xargs)
 dagger call build-and-push-opa-demo --bundle-directory ../bundle --git-directory ../.git --config-demo-file ../config-demo.yaml --registry-token=env:REGISTRY_ACCESS_TOKEN
 ```
 
+#### Policy Documentation
+
+```bash
+dagger call build-bundle-documentation --bundle-directory ../bundle --git-directory ../.git --docs-directory ../docs
+```
+
 ## Dev
 
 Install:
 
 - [opa](https://www.openpolicyagent.org/docs/latest/#running-opa)
 - [regal](https://docs.styra.com/regal)
+
+# Monitoring
+
+You can monitor the OPA server by querying the metrics endpoint:
+
+```bash
+curl -X GET localhost:8181/v1/metrics
+```
+
+This should return a list of metrics in Prometheus format.
+
+# TODO
+- [ ] policy documentation using https://github.com/zenitysec/sphinx-rego
+  - [x] pipeline
+  - [ ] publish to github pages
+- [ ] signing using `policy build --signing-key=STRING`
+- [ ] encrypting

@@ -25,6 +25,8 @@ const userDataURL = "https://github.com/mheers/opa-rego-example/releases/downloa
 const opaImageSrc = "openpolicyagent/opa:0.70.0-static"
 const opaImageDst = "docker.io/mheers/opa-demo:latest"
 
+const docsImageSrc = "mheers/sphinx-rego:latest"
+
 @object()
 export class Ci {
   @func()
@@ -94,6 +96,23 @@ export class Ci {
       .withExec(["sh", "-c", `policy login -s ${registry} -u ${username} -p $REGISTRY_ACCESS_TOKEN`]) // login
       .withExec(["policy", "push", `${registry}/${repository}:${tag}`]) // push
       .stdout()
+  }
+
+  @func()
+  async buildBundleDocumentation(bundleDirectory: Directory, gitDirectory: Directory, docsDirectory: Directory): Promise<string> {
+    const docsContainer = dag.container().from(docsImageSrc)
+
+    const result = docsContainer
+      .withMountedDirectory("/bundle", bundleDirectory)
+      .withMountedDirectory("/git/.git", gitDirectory)
+      .withMountedDirectory("/docs", docsDirectory)
+      .withExec(["mkdir", "-p", "/work/build"])
+      .withExec(["sh", "-c", "cp -r /bundle/ /work/source/"])
+      .withExec(["sh", "-c", "cp -r /docs/* /work/source/"])
+      .withExec(["sh", "-c", "sphinx-build /work/source/ /work/build/"])
+      .stdout()
+
+    return result
   }
 
   @func()

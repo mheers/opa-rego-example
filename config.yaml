@@ -19,8 +19,8 @@ bundles:
 
 decision_logs:
   console: true
-status:
-  console: true
+# status:
+#   console: true
 labels:
   region: prod
   depart: dev1
