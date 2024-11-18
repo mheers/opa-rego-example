@@ -1,6 +1,17 @@
 .. from https://github.com/zenitysec/sphinx-rego
 
-.. rego::
-   :policy: bundle/simple/**/*.rego
-   :norecursive:
-   :nocustom:
+Welcome to opa rego example's documentation!
+=================================================
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+   policy
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`

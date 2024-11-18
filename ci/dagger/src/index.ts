@@ -107,9 +107,10 @@ export class Ci {
       .withMountedDirectory("/git/.git", gitDirectory)
       .withMountedDirectory("/docs", docsDirectory)
       .withExec(["mkdir", "-p", "/work/build"])
-      .withExec(["sh", "-c", "cp -r /bundle/ /work/source/"])
-      .withExec(["sh", "-c", "cp -r /docs/* /work/source/"])
-      .withExec(["sh", "-c", "sphinx-build /work/source/ /work/build/"])
+      .withWorkdir("/work")
+      .withExec(["sh", "-c", "cp -r /bundle/simple/ /work/source/"])
+      .withExec(["sh", "-c", "cp -r /docs/* /work/"])
+      .withExec(["sh", "-c", "sphinx-build . /work/build/"])
   }
 
   @func()
