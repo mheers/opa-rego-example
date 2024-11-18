@@ -99,10 +99,10 @@ export class Ci {
   }
 
   @func()
-  async buildBundleDocumentation(bundleDirectory: Directory, gitDirectory: Directory, docsDirectory: Directory): Promise<string> {
+  buildBundleDocumentation(bundleDirectory: Directory, gitDirectory: Directory, docsDirectory: Directory): Container {
     const docsContainer = dag.container().from(docsImageSrc)
 
-    const result = docsContainer
+    return docsContainer
       .withMountedDirectory("/bundle", bundleDirectory)
       .withMountedDirectory("/git/.git", gitDirectory)
       .withMountedDirectory("/docs", docsDirectory)
@@ -110,10 +110,13 @@ export class Ci {
       .withExec(["sh", "-c", "cp -r /bundle/ /work/source/"])
       .withExec(["sh", "-c", "cp -r /docs/* /work/source/"])
       .withExec(["sh", "-c", "sphinx-build /work/source/ /work/build/"])
-      .stdout()
-
-    return result
   }
+
+  @func()
+  getDocumentation(bundleDirectory: Directory, gitDirectory: Directory, docsDirectory: Directory): Directory {
+    return this.buildBundleDocumentation(bundleDirectory, gitDirectory, docsDirectory).directory("/work/build/")
+  }
+
 
   @func()
   async buildAndPushOpaDemo(bundleDirectory: Directory, gitDirectory: Directory, configDemoFile: File, registryToken: Secret): Promise<string> {

@@ -80,7 +80,7 @@ dagger call build-and-push-opa-demo --bundle-directory ../bundle --git-directory
 #### Policy Documentation
 
 ```bash
-dagger call build-bundle-documentation --bundle-directory ../bundle --git-directory ../.git --docs-directory ../docs
+dagger call get-documentation --bundle-directory ../bundle --git-directory ../.git --docs-directory ../docs export --path ./public
 ```
 
 ## Dev
