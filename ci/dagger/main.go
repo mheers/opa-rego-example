@@ -30,8 +30,9 @@ const (
 	username    = "mheers"
 	userDataURL = "https://github.com/mheers/opa-rego-example/releases/download/v0.0.1/data.json"
 
-	opaImageSrc = "openpolicyagent/opa:0.70.0-static"
-	opaImageDst = "docker.io/mheers/opa-demo:latest"
+	opaImageSrc        = "openpolicyagent/opa:0.70.0-static"
+	httpServerImageSrc = "projectdiscovery/simplehttpserver:latest"
+	opaImageDst        = "docker.io/mheers/opa-demo:latest"
 
 	docsImageSrc = "mheers/sphinx-rego:latest"
 )
@@ -130,17 +131,32 @@ func (m *Ci) GetDocumentation(bundleDirectory, gitDirectory, docsDirectory *dagg
 	return m.BuildBundleDocumentation(bundleDirectory, gitDirectory, docsDirectory).Directory("/work/build/")
 }
 
-func (m *Ci) BuildAndPushOpaDemo(bundleDirectory, gitDirectory *dagger.Directory, configDemoFile *dagger.File, registryToken *dagger.Secret) (string, error) {
+func (m *Ci) BuildAndPushOpaDemo(bundleDirectory, gitDirectory, docsDirectory *dagger.Directory, configDemoFile *dagger.File, registryToken *dagger.Secret) (string, error) {
 	bundleContainer := m.BuildBundle(bundleDirectory, gitDirectory)
 	opaContainer := dag.Container().From(opaImageSrc)
+	simpleHTTPServerContainer := dag.Container().From(httpServerImageSrc)
+	docs := m.GetDocumentation(bundleDirectory, gitDirectory, docsDirectory)
 
 	return bundleContainer.
 		WithFile("/opa", opaContainer.File("/opa")).
 		WithFile("/config.yaml", configDemoFile).
+		WithFile("/simplehttpserver", simpleHTTPServerContainer.File("/usr/local/bin/simplehttpserver")).
+		WithDirectory("/docs", docs).
+		// entrypoint for the opa container with EOF
+		WithNewFile("/entrypoint.sh", `#!/bin/bash
+set -eo pipefail
+
+echo "Starting docs"
+/simplehttpserver -path /docs -listen 0.0.0.0:8080 &
+
+echo "Starting opa"
+exec /opa "$@"
+`, dagger.ContainerWithNewFileOpts{Permissions: int(0755)}).
 		WithExec([]string{"mkdir", "-p", "/data"}).
 		WithWorkdir("/data").
 		WithExec([]string{"policy", "save", fmt.Sprintf("%s/%s:%s", registry, repository, tag)}). // save/export
-		WithEntrypoint([]string{"/opa", "run", "--server", "--log-level", "debug", "--addr", ":8181", "/data", "--config-file", "/config.yaml"}).
+		WithEntrypoint([]string{"/entrypoint.sh"}).
+		WithDefaultArgs([]string{"run", "--server", "--log-level", "debug", "--addr", ":8181", "/data", "--config-file", "/config.yaml"}).
 		WithRegistryAuth(opaImageDst, username, registryToken).
 		Publish(context.Background(), opaImageDst)
 }

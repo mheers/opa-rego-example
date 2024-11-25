@@ -76,7 +76,7 @@ dagger call test-build-and-push-bundle \
 
 # run build and push an OPA demo image with batteries included
 export $(cat .env | xargs)
-dagger call build-and-push-opa-demo --bundle-directory ../bundle --git-directory ../.git --config-demo-file ../config-demo.yaml --registry-token=env:REGISTRY_ACCESS_TOKEN
+dagger call build-and-push-opa-demo --bundle-directory ../bundle --git-directory ../.git --docs-directory ../docs --config-demo-file ../config-demo.yaml --registry-token=env:REGISTRY_ACCESS_TOKEN
 ```
 
 #### Policy Documentation
