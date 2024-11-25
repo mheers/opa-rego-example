@@ -2,6 +2,8 @@
 
 Defines a simple OPA bundle compatible folder structure for rego policies and data.
 
+Publishes a documentation to GitHub Pages: https://mheers.github.io/opa-rego-example/
+
 ## Run OPA server
 
 ```bash
