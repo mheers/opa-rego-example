@@ -1,0 +1,11 @@
+version: '3.1'
+services:
+
+  # playground using running local bundle:
+  playground:
+    image: mheers/opa-live-playground
+    ports:
+      - "3000:3000"
+    environment:
+      - OPA_URL=http://localhost:8181
+    network_mode: host

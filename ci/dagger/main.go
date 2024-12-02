@@ -34,7 +34,8 @@ const (
 	httpServerImageSrc = "projectdiscovery/simplehttpserver:latest"
 	opaImageDst        = "docker.io/mheers/opa-demo:latest"
 
-	docsImageSrc = "mheers/sphinx-rego:latest"
+	docsImageSrc       = "mheers/sphinx-rego:latest"
+	playgroundImageSrc = "mheers/opa-live-playground:latest"
 )
 
 func (m *Ci) BaseContainer(bundleDirectory *dagger.Directory, useExternalUserData bool) *dagger.Container {
@@ -139,11 +140,13 @@ func (m *Ci) GetDocumentation(bundleDirectory, gitDirectory, docsDirectory *dagg
 func (m *Ci) BuildAndPushOpaDemo(bundleDirectory, gitDirectory, docsDirectory *dagger.Directory, configDemoFile *dagger.File, registryToken *dagger.Secret) (string, error) {
 	bundleContainer := m.BuildBundle(bundleDirectory, gitDirectory, false)
 	opaContainer := dag.Container().From(opaImageSrc)
+	playgroundContainer := dag.Container().From(playgroundImageSrc)
 	simpleHTTPServerContainer := dag.Container().From(httpServerImageSrc)
 	docs := m.GetDocumentation(bundleDirectory, gitDirectory, docsDirectory)
 
 	return bundleContainer.
 		WithFile("/opa", opaContainer.File("/opa")).
+		WithFile("/opa-live-playground", playgroundContainer.File("/src/dist/opa-live-playground")).
 		WithFile("/config.yaml", configDemoFile).
 		WithFile("/simplehttpserver", simpleHTTPServerContainer.File("/usr/local/bin/simplehttpserver")).
 		WithDirectory("/docs", docs).
@@ -153,6 +156,10 @@ set -eo pipefail
 
 echo "Starting docs"
 /simplehttpserver -path /docs -listen 0.0.0.0:8080 &
+
+echo "Starting opa live playground"
+export OPA_URL=http://localhost:8181
+/opa-live-playground &
 
 echo "Starting opa"
 exec /opa "$@"
