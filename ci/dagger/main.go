@@ -40,13 +40,13 @@ const (
 func (m *Ci) BaseContainer(bundleDirectory *dagger.Directory, useExternalUserData bool) *dagger.Container {
 	c := dag.Container().From(baseImage).
 		WithMountedDirectory("/bundle", bundleDirectory).
-		WithWorkdir("/bundle").
-
-		// download/replace user data from the api
-		WithExec([]string{"mkdir", "-p", "/bundle/users/"})
+		WithWorkdir("/bundle")
 
 	if useExternalUserData {
-		c.WithExec([]string{"wget", "-O", "/bundle/users/data.json", userDataURL})
+		// download/replace user data from the api
+		c.
+			WithExec([]string{"mkdir", "-p", "/bundle/users/"}).
+			WithExec([]string{"wget", "-O", "/bundle/users/data.json", userDataURL})
 	}
 
 	return c

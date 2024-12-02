@@ -5,9 +5,9 @@ import rego.v1
 import data.simple.authz
 
 mock_users := [
-	{"email": "admin", "group": ["admin"]},
-	{"email": "user", "group": ["user"]},
-	{"email": "john", "group": ["admin"]},
+	{"email": "admin", "groups": ["admin"]},
+	{"email": "user", "groups": ["user"]},
+	{"email": "john", "groups": ["admin"]},
 ]
 
 test_admins_mock if {
