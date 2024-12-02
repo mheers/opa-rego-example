@@ -13,7 +13,7 @@ opa run --server --log-level debug --addr :8181 ./bundle
 ## Run a query using curl
 
 ```bash
-curl -X POST localhost:8181/v1/data/simple/authz -d '{"input": {"username": "marcel", "password": "abcdef", "salary": 5, "card": "123-456-7890"}}' | jq
+curl -X POST localhost:8181/v1/data/simple/authz -d '{"input": {"email": "marcel@heers.it", "password": "abcdef", "salary": 5, "card": "123-456-7890"}}' | jq
 ```
 
 This should return:

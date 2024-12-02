@@ -4,33 +4,33 @@ import rego.v1
 
 import data.simple.authz
 
-mock_users := {
-	"admin": {"groups": ["admin"]},
-	"john": {"groups": ["admin"]},
-	"user": {"groups": ["user"]},
-}
+mock_users := [
+	{"email": "admin", "group": ["admin"]},
+	{"email": "user", "group": ["user"]},
+	{"email": "john", "group": ["admin"]},
+]
 
 test_admins_mock if {
 	tests := [
 		{
 			"msg": "admin user",
-			"username": "admin",
+			"email": "admin",
 			"expected": true,
 		},
 		{
 			"msg": "non-admin user",
-			"username": "user",
+			"email": "user",
 			"expected": false,
 		},
 		{
 			"msg": "john is admin",
-			"username": "john",
+			"email": "john",
 			"expected": true,
 		},
 	]
 
 	every test in tests {
-		result := authz.allow with input as {"username": test.username}
+		result := authz.allow with input as {"email": test.email}
 			with data.users as mock_users
 		result == test.expected
 	}

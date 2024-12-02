@@ -1,21 +1,84 @@
-{
-    "marcel": {
+[
+    {
+        "_id": "20c01447-7fe9-43fd-b1fe-c4e32d573803",
+        "email": "marcel@heers.it",
+        "firstName": "Marcel",
+        "lastName": "Heers",
+        "right": [
+            "read",
+            "write"
+        ],
         "groups": [
             "admin",
             "user"
         ],
-        "maxAmount": 23
+        "maxAmount": 23,
+        "role": [
+            {
+                "roleId": "38e72b3f-3b77-453b-a625-b1c4d6aabeb8",
+                "roleName": "demo-role",
+                "createdTimestamp": {
+                    "$date": "2024-10-18T07:48:09.558Z"
+                },
+                "createdBy": {
+                    "email": "marcel@heers.it",
+                    "name": "Marcel Heers"
+                },
+                "updatedTimeStamp": {
+                    "$date": "2024-10-18T08:21:03.720Z"
+                },
+                "updatedBy": {
+                    "email": "marcel@heers.it",
+                    "name": "Marcel Heers"
+                }
+            },
+            {
+                "roleId": "c80f94a0-c4ba-4c93-a8bd-9bda30780d31",
+                "roleName": "demo-role",
+                "createdTimestamp": {
+                    "$date": "2024-10-18T08:07:13.932Z"
+                },
+                "createdBy": {
+                    "email": "marcel@heers.it",
+                    "name": "Marcel Heers"
+                },
+                "updatedTimeStamp": {
+                    "$date": "2024-10-18T08:07:13.932Z"
+                },
+                "updatedBy": {
+                    "email": "marcel@heers.it",
+                    "name": "Marcel Heers"
+                }
+            }
+        ]
     },
-    "user": {
+    {
+        "_id": "251b40a4-9028-459d-8cba-86f813abcc04",
+        "email": "user@heers.it",
+        "firstName": "User",
+        "lastName": "Heers",
+        "right": [
+            "read"
+        ],
         "groups": [
             "user"
         ],
-        "maxAmount": 15
+        "maxAmount": 15,
+        "role": []
     },
-    "admin": {
+    {
+        "_id": "7126eac1-348f-4021-83b2-710d46a1d5da",
+        "email": "admin@heers.it",
+        "firstName": "Admin",
+        "lastName": "Heers",
+        "right": [
+            "read",
+            "write"
+        ],
         "groups": [
             "admin"
         ],
-        "maxAmount": 1000
+        "maxAmount": 1000,
+        "role": []
     }
-}
+]

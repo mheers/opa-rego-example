@@ -13,4 +13,4 @@ tests:
     input:
       type: inline
       value: >
-       { "input": { "username": "marcel" } }
+       { "input": { "email": "marcel@heers.it" } }

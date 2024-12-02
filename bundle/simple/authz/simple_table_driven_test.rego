@@ -8,12 +8,12 @@ test_admins if {
 	tests := [
 		{
 			"msg": "admin user",
-			"input": {"username": "admin"},
+			"input": {"email": "admin@heers.it"},
 			"expected": true,
 		},
 		{
 			"msg": "non-admin user",
-			"input": {"username": "user"},
+			"input": {"email": "user@heers.it"},
 			"expected": false,
 		},
 	]
