@@ -37,36 +37,41 @@ const (
 	docsImageSrc = "mheers/sphinx-rego:latest"
 )
 
-func (m *Ci) BaseContainer(bundleDirectory *dagger.Directory) *dagger.Container {
-	return dag.Container().From(baseImage).
+func (m *Ci) BaseContainer(bundleDirectory *dagger.Directory, useExternalUserData bool) *dagger.Container {
+	c := dag.Container().From(baseImage).
 		WithMountedDirectory("/bundle", bundleDirectory).
 		WithWorkdir("/bundle").
 
 		// download/replace user data from the api
-		WithExec([]string{"mkdir", "-p", "/bundle/users/"}).
-		WithExec([]string{"wget", "-O", "/bundle/users/data.json", userDataURL})
+		WithExec([]string{"mkdir", "-p", "/bundle/users/"})
+
+	if useExternalUserData {
+		c.WithExec([]string{"wget", "-O", "/bundle/users/data.json", userDataURL})
+	}
+
+	return c
 }
 
 func (m *Ci) LintRegos(bundleDirectory *dagger.Directory) (string, error) {
-	return m.BaseContainer(bundleDirectory).
+	return m.BaseContainer(bundleDirectory, false).
 		WithExec([]string{"regal", "lint", "/bundle"}). // lint
 		Stdout(context.Background())
 }
 
 func (m *Ci) CheckRegos(bundleDirectory *dagger.Directory) (string, error) {
-	return m.BaseContainer(bundleDirectory).
+	return m.BaseContainer(bundleDirectory, false).
 		WithExec([]string{"opa", "check", "--strict", "/bundle"}). // check // TODO: add schema to check and run bench
 		Stdout(context.Background())
 }
 
 func (m *Ci) TestRegos(bundleDirectory *dagger.Directory) (string, error) {
-	return m.BaseContainer(bundleDirectory).
+	return m.BaseContainer(bundleDirectory, false).
 		WithExec([]string{"opa", "test", "-v", "--coverage", "--format=json", "/bundle"}). // test
 		Stdout(context.Background())
 }
 
-func (m *Ci) BuildBundle(bundleDirectory, gitDirectory *dagger.Directory) *dagger.Container {
-	return m.BaseContainer(bundleDirectory).
+func (m *Ci) BuildBundle(bundleDirectory, gitDirectory *dagger.Directory, useExternalUserData bool) *dagger.Container {
+	return m.BaseContainer(bundleDirectory, useExternalUserData).
 		WithMountedDirectory("/git/.git", gitDirectory).
 		WithWorkdir("/git").
 
@@ -104,7 +109,7 @@ func (m *Ci) TestBuildAndPushBundle(bundleDirectory, testDirectory, gitDirectory
 	}
 	fmt.Println(result)
 
-	bundle := m.BuildBundle(bundleDirectory, gitDirectory)
+	bundle := m.BuildBundle(bundleDirectory, gitDirectory, true)
 
 	m.TestBlackBox(bundle, testDirectory)
 
@@ -132,7 +137,7 @@ func (m *Ci) GetDocumentation(bundleDirectory, gitDirectory, docsDirectory *dagg
 }
 
 func (m *Ci) BuildAndPushOpaDemo(bundleDirectory, gitDirectory, docsDirectory *dagger.Directory, configDemoFile *dagger.File, registryToken *dagger.Secret) (string, error) {
-	bundleContainer := m.BuildBundle(bundleDirectory, gitDirectory)
+	bundleContainer := m.BuildBundle(bundleDirectory, gitDirectory, false)
 	opaContainer := dag.Container().From(opaImageSrc)
 	simpleHTTPServerContainer := dag.Container().From(httpServerImageSrc)
 	docs := m.GetDocumentation(bundleDirectory, gitDirectory, docsDirectory)
