@@ -146,7 +146,7 @@ func (m *Ci) BuildAndPushOpaDemo(bundleDirectory, gitDirectory, docsDirectory *d
 
 	return bundleContainer.
 		WithFile("/opa", opaContainer.File("/opa")).
-		WithFile("/opa-live-playground", playgroundContainer.File("/src/dist/opa-live-playground")).
+		WithFile("/opa-live-playground", playgroundContainer.File("/opa-live-playground")).
 		WithFile("/config.yaml", configDemoFile).
 		WithFile("/simplehttpserver", simpleHTTPServerContainer.File("/usr/local/bin/simplehttpserver")).
 		WithDirectory("/docs", docs).
