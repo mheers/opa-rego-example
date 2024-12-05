@@ -5,4 +5,6 @@ services:
   opa:
     image: mheers/opa-demo:latest
     ports:
-      - "8181:8181"
+      - "3000:3000" # playground
+      - "8080:8080" # docs
+      - "8181:8181" # opa
