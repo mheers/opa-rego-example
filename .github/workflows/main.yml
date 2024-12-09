@@ -65,3 +65,16 @@ jobs:
         run: dagger call build-and-push-opa-demo --bundle-directory ../bundle --git-directory ../.git --docs-directory ../docs --config-demo-file ../config-demo.yaml --registry-token=env:REGISTRY_ACCESS_TOKEN
         env:
           REGISTRY_ACCESS_TOKEN: ${{ secrets.REGISTRY_ACCESS_TOKEN }}
+
+      # TODO: write unit tests for the CI
+      # - name: Test CI
+      #   working-directory: ci
+      #   run: dagger call build-ci-image --repo-directory ../ --registry-token=env:REGISTRY_ACCESS_TOKEN
+      #   env:
+      #     REGISTRY_ACCESS_TOKEN: ${{ secrets.REGISTRY_ACCESS_TOKEN }}
+
+      - name: Build CI Image
+        working-directory: ci
+        run: dagger call build-ci-image --repo-directory ../ --registry-token=env:REGISTRY_ACCESS_TOKEN
+        env:
+          REGISTRY_ACCESS_TOKEN: ${{ secrets.REGISTRY_ACCESS_TOKEN }}

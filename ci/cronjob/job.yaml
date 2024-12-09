@@ -1,0 +1,29 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: opa-rego-example-ci
+spec:
+  template:
+    spec:
+      containers:
+        - name: ci
+          image: mheers/opa-rego-example-ci:1.0.0
+          # dagger call test-build-and-push-bundle --bundle-directory ../bundle --git-directory ../.git --test-directory ../tests --registry-token=env:REGISTRY_ACCESS_TOKEN
+          command:
+            - "dagger"
+            - "call"
+            - "test-build-and-push-bundle"
+            - "--bundle-directory"
+            - "../bundle"
+            - "--git-directory"
+            - "../.git"
+            - "--test-directory"
+            - "../tests"
+            - "--registry-token=env:REGISTRY_ACCESS_TOKEN"
+          env:
+            - name: REGISTRY_ACCESS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  key: REGISTRY_ACCESS_TOKEN
+                  name: opa-rego-example-ci-secret
+      restartPolicy: Never

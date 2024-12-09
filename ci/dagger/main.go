@@ -36,7 +36,20 @@ const (
 
 	docsImageSrc       = "mheers/sphinx-rego:latest"
 	playgroundImageSrc = "mheers/opa-live-playground:latest"
+
+	daggerImageSrc = "mheers/dagger-tools:v0.14.0"
+	daggerImageDst = "mheers/opa-rego-example-ci"
 )
+
+// builds and pushes the container for the ci pipeline -> self contained ci pipeline - defined in this pipeline
+func (m *Ci) BuildCiImage(repoDirectory *dagger.Directory, registryToken *dagger.Secret) (string, error) {
+	imageDst := fmt.Sprintf("%s/%s:%s", registry, daggerImageDst, tag)
+	return dag.Container().From(daggerImageSrc).
+		WithMountedDirectory("/repo", repoDirectory).
+		WithWorkdir("/repo/ci").
+		WithRegistryAuth(imageDst, username, registryToken).
+		Publish(context.Background(), imageDst)
+}
 
 func (m *Ci) BaseContainer(bundleDirectory *dagger.Directory, useExternalUserData bool) *dagger.Container {
 	c := dag.Container().From(baseImage).
