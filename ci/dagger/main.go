@@ -45,7 +45,7 @@ const (
 func (m *Ci) BuildCiImage(repoDirectory *dagger.Directory, registryToken *dagger.Secret) (string, error) {
 	imageDst := fmt.Sprintf("%s/%s:%s", registry, daggerImageDst, tag)
 	return dag.Container().From(daggerImageSrc).
-		WithMountedDirectory("/repo", repoDirectory).
+		WithDirectory("/repo", repoDirectory).
 		WithWorkdir("/repo/ci").
 		WithRegistryAuth(imageDst, username, registryToken).
 		Publish(context.Background(), imageDst)
