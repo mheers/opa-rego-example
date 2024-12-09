@@ -79,6 +79,16 @@ export $(cat .env | xargs)
 dagger call build-and-push-opa-demo --bundle-directory ../bundle --git-directory ../.git --docs-directory ../docs --config-demo-file ../config-demo.yaml --registry-token=env:REGISTRY_ACCESS_TOKEN
 ```
 
+### Run the pipeline in local k8s/k3d cluster
+
+```bash
+docker pull registry.dagger.io/engine:v0.14.0
+k3d image import registry.dagger.io/engine:v0.14.0
+kubectl create -f ci/daggerengine/
+kubectl port-forward -n dagger svc/daggerengine 1234
+export _EXPERIMENTAL_DAGGER_RUNNER_HOST=tcp://localhost:1234
+```
+
 #### Policy Documentation
 
 ```bash

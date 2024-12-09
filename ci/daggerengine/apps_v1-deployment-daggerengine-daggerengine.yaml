@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: daggerengine
+spec:
+  selector:
+    matchLabels:
+      app: daggerengine
+  template:
+    metadata:
+      labels:
+        app: daggerengine
+    spec:
+      containers:
+        - args:
+            - /usr/local/bin/dagger-engine --config /etc/dagger/engine.toml --oci-max-parallelism
+              num-cpu --addr tcp://0.0.0.0:1234
+          command:
+            - /bin/sh
+            - -c
+          image: registry.dagger.io/engine:v0.14.0
+          name: daggerengine
+          ports:
+            - containerPort: 1234
+          securityContext:
+            capabilities:
+              drop:
+                - NET_RAW
+            privileged: true
+          volumeMounts:
+            - mountPath: /etc/dagger/engine.toml
+              name: config-volume
+              subPath: engine.toml
+            # - mountPath: /usr/local/share/ca-certificates
+            #   name: root-certs
+          resources:
+            limits:
+              cpu: "1"
+              memory: 3Gi
+            requests:
+              cpu: "1"
+              memory: 3Mi
+      securityContext:
+        runAsNonRoot: false
+        seccompProfile:
+          type: RuntimeDefault
+      volumes:
+        - configMap:
+            defaultMode: 420
+            name: daggerengine-engine-config
+          name: config-volume
+        - configMap:
+            defaultMode: 420
+            name: daggerengine-root-ca
+          name: root-certs
