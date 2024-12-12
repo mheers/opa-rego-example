@@ -80,7 +80,11 @@ func (m *Ci) CheckRegos(bundleDirectory *dagger.Directory) (string, error) {
 
 func (m *Ci) TestRegos(bundleDirectory *dagger.Directory) (string, error) {
 	return m.BaseContainer(bundleDirectory, false).
-		WithExec([]string{"opa", "test", "-v", "--coverage", "--format=json", "/bundle"}). // test
+		// test
+		WithExec([]string{"opa", "test", "-v", "--coverage", "--format=json", "/bundle"}).
+
+		// assume test coverage is > 80%
+		WithExec([]string{"bash", "-c", "opa test --ignore system -v --coverage --format=json /bundle | jq '.coverage' | awk '{print $1}' | awk -F'%' '{print $1}' | awk '{if ($1 < 80) exit 1}'"}).
 		Stdout(context.Background())
 }
 
