@@ -1,0 +1,152 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opa-demo
+  labels:
+    app: opa-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: opa-demo
+  template:
+    metadata:
+      labels:
+        app: opa-demo
+    spec:
+      imagePullSecrets: # Add this section
+        - name: ecr-secret # Replace with the name of your secret
+      containers:
+        - name: opa
+          image: mheers/opa-demo:latest
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: secret-volume
+              mountPath: /etc/opa
+              readOnly: true
+          ports:
+            - containerPort: 3000 # playground
+            - containerPort: 8080 # docs
+            - containerPort: 8181 # opa
+      volumes:
+        - name: secret-volume
+          configMap:
+            name: opa-demo-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: opa-demo
+  labels:
+    app: opa-demo
+spec:
+  ports:
+    - port: 3000
+      name: playground
+      targetPort: 3000
+    - port: 8080
+      name: docs
+      targetPort: 8080
+    - port: 8181
+      name: opa
+      targetPort: 8181
+  selector:
+    app: opa-demo
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: opa-demo-ingress-opa
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+    - host: opa-demo # Replace with your desired domain
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: opa-demo
+                port:
+                  number: 8181
+  tls:
+    - hosts:
+        - opa-demo
+      secretName: opa-demo-tls-opa
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: opa-demo-ingress-playground
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+    - host: opa-demo-playground # Replace with your desired domain
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: opa-demo
+                port:
+                  number: 3000
+  tls:
+    - hosts:
+        - opa-demo-playground
+      secretName: opa-demo-tls-playground
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: opa-demo-ingress-docs
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+    - host: opa-demo-docs # Replace with your desired domain
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: opa-demo
+                port:
+                  number: 8080
+  tls:
+    - hosts:
+        - opa-demo-docs
+      secretName: opa-demo-tls-docs
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: opa-demo
+data:
+  config.yaml: |
+    decision_logs:
+      console: true
+    # status:
+    #   console: true
+    labels:
+      region: dev
+      depart: dev1
+      service: demo
