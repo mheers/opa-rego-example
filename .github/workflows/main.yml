@@ -62,7 +62,7 @@ jobs:
 
       - name: Build OPA Demo Image
         working-directory: ci
-        run: dagger call build-and-push-opa-demo --bundle-directory ../bundle --git-directory ../.git --docs-directory ../docs --config-demo-file ../config-demo.yaml --registry-token=env:REGISTRY_ACCESS_TOKEN
+        run: dagger call build-and-push-opa-demo --bundle-directory ../bundle --git-directory ../.git --test-directory ../tests --docs-directory ../docs --config-demo-file ../config-demo.yaml --registry-token=env:REGISTRY_ACCESS_TOKEN
         env:
           REGISTRY_ACCESS_TOKEN: ${{ secrets.REGISTRY_ACCESS_TOKEN }}
 
