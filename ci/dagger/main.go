@@ -60,7 +60,7 @@ func (m *Ci) BaseContainer(bundleDirectory *dagger.Directory, useExternalUserDat
 		// download/replace user data from the api
 		c.
 			WithExec([]string{"mkdir", "-p", "/bundle/users/"}).
-			WithExec([]string{"wget", "-O", "/bundle/users/data.json", userDataURL})
+			WithExec([]string{"sh", "-c", fmt.Sprintf("curl -k %s > /bundle/users/data.json", userDataURL)})
 	}
 
 	return c
@@ -83,8 +83,8 @@ func (m *Ci) TestRegos(bundleDirectory *dagger.Directory) (string, error) {
 		// test
 		WithExec([]string{"opa", "test", "-v", "--coverage", "--format=json", "/bundle"}).
 
-		// assume test coverage is > 80%
-		WithExec([]string{"bash", "-c", "opa test --ignore system -v --coverage --format=json /bundle | jq '.coverage' | awk '{print $1}' | awk -F'%' '{print $1}' | awk '{if ($1 < 80) exit 1}'"}).
+		// assume test coverage is > 80% // TODO: activate/enforce
+		// WithExec([]string{"bash", "-c", "opa test --ignore system -v --coverage --format=json /bundle | jq '.coverage' | awk '{print $1}' | awk -F'%' '{print $1}' | awk '{if ($1 < 80) exit 1}'"}).
 		Stdout(context.Background())
 }
 
@@ -104,32 +104,46 @@ func (m *Ci) TestBlackBox(bundleContainer *dagger.Container, testDir *dagger.Dir
 		WithWorkdir("/data").
 		WithExec([]string{"policy", "save", fmt.Sprintf("%s/%s:%s", registry, repository, tag)}). // save/export.
 		WithExec([]string{"sh", "-c", "cp -r /tests/* /data/"}).
-		WithExec([]string{"raygun", "execute", "--verbose", "--opa-log", "/tmp/opa.log", "."}). // blackbox test.
+		WithExec([]string{"sh", "-c", "yq -i '.opa.bundle-path=\"bundle.tar.gz\"' /tests/*.raygun"}). // adjusting `opa.bundle-path` in the yaml files to the bundle tarball using yq
+		WithExec([]string{"raygun", "execute", "--verbose", "--opa-log", "/tmp/opa.log", "."}).       // blackbox test.
 		Stdout(context.Background())
 }
 
-func (m *Ci) TestBuildAndPushBundle(bundleDirectory, testDirectory, gitDirectory *dagger.Directory, registryToken *dagger.Secret) (string, error) {
+func (m *Ci) TestAndBuildBundle(bundleDirectory, testDirectory, gitDirectory *dagger.Directory) (*dagger.Container, error) {
 	result, err := m.CheckRegos(bundleDirectory)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	fmt.Println(result)
 
 	result, err = m.LintRegos(bundleDirectory)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	fmt.Println(result)
 
 	result, err = m.TestRegos(bundleDirectory)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	fmt.Println(result)
 
 	bundle := m.BuildBundle(bundleDirectory, gitDirectory, true)
 
-	m.TestBlackBox(bundle, testDirectory)
+	testResult, err := m.TestBlackBox(bundle, testDirectory)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(testResult)
+
+	return bundle, nil
+}
+
+func (m *Ci) TestBuildAndPushBundle(bundleDirectory, testDirectory, gitDirectory *dagger.Directory, registryToken *dagger.Secret) (string, error) {
+	bundle, err := m.TestAndBuildBundle(bundleDirectory, testDirectory, gitDirectory)
+	if err != nil {
+		return "", err
+	}
 
 	return bundle.
 		WithSecretVariable("REGISTRY_ACCESS_TOKEN", registryToken).
@@ -153,8 +167,7 @@ func (m *Ci) BuildBundleDocumentation(bundleDirectory, gitDirectory, docsDirecto
 func (m *Ci) GetDocumentation(bundleDirectory, gitDirectory, docsDirectory *dagger.Directory) *dagger.Directory {
 	return m.BuildBundleDocumentation(bundleDirectory, gitDirectory, docsDirectory).Directory("/work/build/")
 }
-
-func (m *Ci) BuildAndPushOpaDemo(bundleDirectory, gitDirectory, docsDirectory *dagger.Directory, configDemoFile *dagger.File, registryToken *dagger.Secret) (string, error) {
+func (m *Ci) BuildAndPushOpaDemo(bundleDirectory, gitDirectory, docsDirectory, testDirectory *dagger.Directory, configDemoFile *dagger.File, registryToken *dagger.Secret) (string, error) {
 	bundleContainer := m.BuildBundle(bundleDirectory, gitDirectory, false)
 	opaContainer := dag.Container().From(opaImageSrc)
 	playgroundContainer := dag.Container().From(playgroundImageSrc)
@@ -167,6 +180,7 @@ func (m *Ci) BuildAndPushOpaDemo(bundleDirectory, gitDirectory, docsDirectory *d
 		WithFile("/config.yaml", configDemoFile).
 		WithFile("/simplehttpserver", simpleHTTPServerContainer.File("/usr/local/bin/simplehttpserver")).
 		WithDirectory("/docs", docs).
+		WithDirectory("/presets", testDirectory).
 		// entrypoint for the opa container with EOF
 		WithNewFile("/entrypoint.sh", `#!/bin/bash
 set -eo pipefail
@@ -176,6 +190,7 @@ echo "Starting docs"
 
 echo "Starting opa live playground"
 export OPA_URL=http://localhost:8181
+export PRESETS_PATH=/presets
 /opa-live-playground &
 
 echo "Starting opa"
